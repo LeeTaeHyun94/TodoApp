@@ -31,7 +31,7 @@ export default class App extends Component<Props> {
           <Text style={styles.title}>To Do</Text>
           <View style={styles.card}>
             <TextInput style={styles.input} placeholder={"New To Do"} value={this.state.newTodo} onChangeText={this._controlNewTodo} placeholderTextColor={"#999"} returnKeyType={"done"} autoCorrect={false}/>
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.todos}>
               <Todo/>
             </ScrollView>
           </View>
@@ -97,4 +97,7 @@ const styles = StyleSheet.create({
       borderBottomWidth: 1,
         fontSize: 25,
     },
+  todos: {
+    alignItems: "center"
+  },
 });
