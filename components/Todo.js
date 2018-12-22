@@ -1,17 +1,30 @@
 import React, {Component} from "react";
 import {View, Text, TouchableOpacity, StyleSheet, Dimensions, TextInput} from "react-native";
+import PropTypes from "prop-types";
 
 const {width, height} = Dimensions.get("window");
 
-export default class Todo extends React.Component{
-    state = {
-        isEditing: false,
-        isCompleted: false,
-        todoValue : "",
+export default class Todo extends Component{
+    constructor(props) {
+        super(props);
+        this.state = {isEditing: false, todoValue: props.text}
+    }
+    static propTypes = {
+        id: PropTypes.string.isRequired,
+        text: PropTypes.string.isRequired,
+        isCompleted: PropTypes.bool.isRequired,
+        deleteTodo: PropTypes.func.isRequired,
+        uncompleteTodo: PropTypes.func.isRequired,
+        completeTodo: PropTypes.func.isRequired
     };
+    // state = {
+    //     isEditing: false,
+    //     isCompleted: false,
+    //     todoValue : "",
+    // };
     render() {
-        const {isEditing, isCompleted, todoValue} = this.state;
-        const {text} = this.props;
+        const {isEditing, todoValue} = this.state;
+        const {id, isCompleted, text, deleteTodo} = this.props;
         return (
             <View style={styles.container}>
                 <View style={styles.column}>
@@ -20,8 +33,8 @@ export default class Todo extends React.Component{
                     </TouchableOpacity>
                     {
                         isEditing ?
-                            (<TextInput style={[styles.text,styles.input, isCompleted?styles.completedText : styles.uncompletedText]} value={todoValue} multiline={true} onChangeText={this._controllInput} returnKeyType={"done"} onBlur={this._finishEditing}/>) :
-                            (<Text style={[styles.text,isCompleted?styles.completedText : styles.uncompletedText]} >
+                            (<TextInput style={[styles.text, styles.input, isCompleted ? styles.completedText : styles.uncompletedText]} value={todoValue} multiline={true} onChangeText={this._controllInput} returnKeyType={"done"} onBlur={this._finishEditing}/>) :
+                            (<Text style={[styles.text, isCompleted ? styles.completedText : styles.uncompletedText]} >
                                     {text}
                             </Text>)
                     }
@@ -40,7 +53,7 @@ export default class Todo extends React.Component{
                                 <Text style={styles.actionText}>✏️</Text>
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPressOut={() => deleteTodo(id)}>
                             <View style={styles.actionContainer}>
                                 <Text style={styles.actionText}>❌</Text>
                             </View>
@@ -51,18 +64,11 @@ export default class Todo extends React.Component{
         )
     };
     _toggleComplete = () => {
-        this.setState(prevState => {
-            return {
-                isCompleted: !prevState.isCompleted,
-            };
-        });
+        const {id, isCompleted, uncompleteTodo, completeTodo} = this.props;
+        isCompleted ? uncompleteTodo(id) : completeTodo(id);
     };
     _startEditing=() =>{
-        const {text} = this.props;
-        this.setState({
-            isEditing : true,
-            todoValue : text
-        });
+        this.setState({isEditing : true});
     };
     _finishEditing = () => {
         this.setState({
@@ -112,8 +118,8 @@ const styles = StyleSheet.create({
     column: {
         flexDirection: "row",
         alignItems: "center",
-        width : width /2 ,
-        justifyContent: "space-between",
+        width : width / 2,
+        // justifyContent: "space-between",
     },
     actions : {
         flexDirection : "row"
@@ -123,8 +129,7 @@ const styles = StyleSheet.create({
         marginHorizontal : 10 ,
     },
     input : {
-        marginVertical : 15,
-        width : width/2,
-        // paddingBottom : 5
+        marginVertical : 20,
+        width : width / 2,
     }
 })

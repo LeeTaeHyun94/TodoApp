@@ -2,45 +2,115 @@ import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View, StatusBar, TextInput, Dimensions, ScrollView} from 'react-native';
 import Todo from './components/Todo';
 import {AppLoading} from "expo";
-const {height, width} = Dimensions.get("window");
+import uuidv1 from "uuid/v1";
 
-// const instructions = Platform.select({
-//   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
-//   android:
-//     'Double tap R on your keyboard to reload,\n' +
-//     'Shake or press menu button for dev menu',
-// });
+const {height, width} = Dimensions.get("window");
 
 type Props = {};
 export default class App extends Component<Props> {
   state = {
     newTodo: "",
-    loadedTodos : false
+    loadedTodos : false,
+    todos: {}
   };
-
+  componentDidMount = () => {
+    this._loadTodos();
+  };
   render() {
-    const { newTodo, loadedTodos} = this.state;
-    if(!loadedTodos){
+    const {newTodo, loadedTodos, todos} = this.state;
+    console.log(todos);
+    if (!loadedTodos) {
       return <AppLoading/>;
     }
     return (
         <View style={styles.container}>
           <StatusBar barStyle="light-content"/>
-          <Text style={styles.title}>To Do</Text>
+          <Text style={styles.title}>Todo List</Text>
           <View style={styles.card}>
-            <TextInput style={styles.input} placeholder={"New To Do"} value={this.state.newTodo} onChangeText={this._controlNewTodo} placeholderTextColor={"#999"} returnKeyType={"done"} autoCorrect={false}/>
+            <TextInput style={styles.input} placeholder={"New Todo"} value={newTodo} onChangeText={this._controlNewTodo} placeholderTextColor={"#999"} returnKeyType={"done"} autoCorrect={false} onSubmitEditing={this._addTodo}/>
             <ScrollView contentContainerStyle={styles.todos}>
-              <Todo text = {"hello i'm a todo "}/>
+              {Object.values(todos).map(todo => <Todo key={todo.id} {...todo} deleteTodo={this._deleteTodo} uncompleteTodo={this._uncompleteTodo} completeTodo={this._completeTodo}/>)}
             </ScrollView>
           </View>
         </View>
     );
-  }
+  };
   _controlNewTodo = text => {
     this.setState({
       newTodo: text
     });
   };
+  _loadTodos = () => {
+    this.setState({
+      loadedTodos: true
+    });
+  };
+  _addTodo = () => {
+    const {newTodo} = this.state;
+    if (newTodo !== "") {
+      this.setState(prevState => {
+        const ID = uuidv1();
+        const newTodoObject = {
+          [ID]: {
+            id: ID,
+            isCompleted: false,
+            text: newTodo,
+            createdAt: Date.now()
+          }
+        };
+        const newState = {
+          ...prevState,
+          newTodo: "",
+          todos: {
+            ...prevState.todos,
+            ...newTodoObject
+          }
+        };
+        return {...newState};
+      });
+    }
+  };
+  _deleteTodo = id => {
+    this.setState(prevState => {
+      const todos = prevState.todos;
+      delete todos[id];
+      const newState = {
+        ...prevState,
+        ...todos
+      };
+      return {...newState};
+    });
+  };
+  _uncompleteTodo = id => {
+    this.setState(prevState => {
+      const newState = {
+        ...prevState,
+        todos: {
+          ...prevState.todos,
+          [id]: {
+            ...prevState.todos[id],
+            isCompleted: false
+          }
+        }
+      };
+      return {...newState};
+    });
+  };
+  _completeTodo = id => {
+    this.setState(prevState => {
+      const newState = {
+        ...prevState,
+        todos: {
+          ...prevState.todos,
+          [id]: {
+            ...prevState.todos[id],
+            isCompleted: true
+          }
+        }
+      };
+      return {...newState};
+    });
+  }
 }
 
 const styles = StyleSheet.create({
